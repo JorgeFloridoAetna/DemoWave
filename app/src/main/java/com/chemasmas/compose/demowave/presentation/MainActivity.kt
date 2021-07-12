@@ -4,13 +4,14 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.LiveData
@@ -18,20 +19,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import com.chemasmas.compose.demowave.ui.theme.DemoWaveTheme
 import com.chemasmas.compose.networkdemo.model.Repo
-import com.chemasmas.compose.networkdemo.repository.ServiceRepository
-import com.chemasmas.compose.networkdemo.util.isNetworkConnected
-
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onStart
+import com.chemasmas.compose.networkdemo.viewmodel.ReposViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val _mld = MutableLiveData<List<Repo>>()
-    val ld:LiveData<List<Repo>> get() = _mld
-    val repository = ServiceRepository()
-
+    val model: ReposViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,27 +38,13 @@ class MainActivity : ComponentActivity() {
             DemoWaveTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    if(isNetworkConnected()){
-                        ReposList(ld)
-                    }else{
-                        Text("No Network!")
-                    }
+                    ReposList(model.repos)
                 }
             }
         }
 
         lifecycleScope.launch {
-            repository.getRepos("chemasmas")
-                .onStart {
-                    println("Conectando")
-                }
-                .catch { e->
-                    System.err.println("Se murio ${e.localizedMessage}")
-                }
-                .collect {
-                    println(it)
-                    _mld.value = it
-                }
+            model.start("chemasmas78")
         }
     }
 }
@@ -71,18 +53,41 @@ class MainActivity : ComponentActivity() {
 fun ReposList(ld: LiveData<List<Repo>>){
     val lista:List<Repo>? by ld.observeAsState()
 
-    LazyColumn() {
-        items(items = lista ?: listOf()){
-            Log.d("repo",it.toString())
-            Text(it.toString())
+    if(lista?.isEmpty() == true){
+        Text("No Repos!!")
+    }else{
+        LazyColumn() {
+
+            items(items = lista ?: listOf()){
+                Log.d("repo",it.toString())
+                Text(it.toString())
+            }
+
         }
     }
+
 }
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    val liveData:LiveData<List<Repo>> = MutableLiveData(listOf(Repo.DUMMY, Repo.DUMMY))
+    val liveData:LiveData<List<Repo>> = MutableLiveData(listOf(Repo.DUMMY
+        , Repo.DUMMY
+        , Repo.DUMMY
+        , Repo.DUMMY
+        , Repo.DUMMY
+    ))
+    DemoWaveTheme {
+        ReposList(liveData)
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun EmptyPreview() {
+    val liveData:LiveData<List<Repo>> = MutableLiveData(listOf(
+    ))
     DemoWaveTheme {
         ReposList(liveData)
     }

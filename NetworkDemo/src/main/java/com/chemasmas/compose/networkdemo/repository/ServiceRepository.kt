@@ -3,16 +3,20 @@ package com.chemasmas.compose.networkdemo.repository
 import com.chemasmas.compose.networkdemo.util.GitHub
 import com.chemasmas.compose.networkdemo.interfaces.GitHubService
 import com.chemasmas.compose.networkdemo.model.Repo
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ActivityRetainedComponent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import javax.inject.Inject
 
-class ServiceRepository(private val service: GitHubService = GitHub.service){
-    fun getRepos(user:String): Flow<List<Repo>?> {
-        return flow {
-            val repos = service.listRepos(user)
-            emit(repos)
-        }.flowOn(Dispatchers.IO)
-    }
+
+@Module
+@InstallIn(ActivityRetainedComponent::class)
+class ServiceRepository @Inject constructor(private val service: GitHubService){
+
+    suspend fun getRepos(user:String) = service.listRepos(user)
+
 }

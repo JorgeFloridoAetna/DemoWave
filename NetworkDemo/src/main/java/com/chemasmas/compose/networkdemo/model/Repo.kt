@@ -1,5 +1,7 @@
 package com.chemasmas.compose.networkdemo.model
 
+import java.io.Serializable
+
 data class Repo(
     val archive_url: String = "",
     val archived: Boolean = false,
@@ -77,12 +79,12 @@ data class Repo(
 
 
 
-) {
+):Serializable {
     override fun toString(): String {
         return "Repo($name $owner)"
     }
 
     companion object{
-        val DUMMY = Repo()
+        val DUMMY = Repo(name = "Dummy")
     }
 }

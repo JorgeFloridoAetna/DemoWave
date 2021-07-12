@@ -1,5 +1,7 @@
 package com.chemasmas.compose.networkdemo.model
 
+import java.io.Serializable
+
 data class Owner(
     val avatar_url: String = "",
     val events_url: String = "",
@@ -21,12 +23,12 @@ data class Owner(
     val url: String = ""
 
 
-) {
+):Serializable {
     override fun toString(): String {
         return "Owner('$login')"
     }
 
     companion object{
-        val DUMMY = Owner()
+        val DUMMY = Owner(login = "Dummy Owner")
     }
 }
